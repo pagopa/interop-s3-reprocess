@@ -41,6 +41,3 @@ node_modules/
 .turbo/
 
 **/dist
-packages/models/src/gen
-packages/*/src/model/generated
-packages/clients/*/src/model/generated

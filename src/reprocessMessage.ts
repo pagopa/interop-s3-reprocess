@@ -14,18 +14,9 @@ export async function reprocessMessage(
   const bucketName = process.env.BUCKET_NAME;
   const queueUrl = process.env.QUEUE_URL;
   const s3KeyPath = process.env.S3_PATH;
-  const awsAccessKeyId = process.env.AWS_ACCESS_KEY_ID;
-  const awsSecretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
   const awsRegion = process.env.AWS_REGION;
 
-  if (
-    !bucketName ||
-    !queueUrl ||
-    !s3KeyPath ||
-    !awsAccessKeyId ||
-    !awsSecretAccessKey ||
-    !awsRegion
-  ) {
+  if (!bucketName || !queueUrl || !s3KeyPath || !awsRegion) {
     throw missingRequiredEnvironmentVariablesError(
       "Missing required environment variables",
     );

@@ -14,7 +14,7 @@ on:
 jobs:
   run-script:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+    environment: ${{ inputs.environment }}
 
     permissions:
       id-token: write
@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
@@ -30,10 +30,11 @@ jobs:
           node-version: "20.x"
 
       - name: Configure AWS credentials from OpenID Connect (OIDC)
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE }}
           aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: tracing-reprocess-${{ github.run_number }}
 
       - name: Install dependencies using pnpm
         run: |
@@ -44,7 +45,7 @@ jobs:
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
-          S3_PATH: ${{ github.event.inputs.s3Path }}
+          S3_PATH: ${{ inputs.s3Path }}
           QUEUE_URL: ${{ secrets.QUEUE_URL }}
         run: |
           pnpm run main

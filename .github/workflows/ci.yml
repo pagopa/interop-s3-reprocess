@@ -1,0 +1,51 @@
+name: Reprocess file
+
+on:
+  workflow_dispatch:
+    inputs:
+      s3Path:
+        description: "The s3KeyPath for file you need to retrigger"
+        required: true
+      environment:
+        description: "Select environment (e.g., production, staging)"
+        required: true
+        type: environment
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+        with:
+          node-version: "20.x"
+
+      - name: Configure AWS credentials from OpenID Connect (OIDC)
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: tracing-reprocess-${{ github.run_number }}
+
+      - name: Install dependencies using pnpm
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+
+      - name: Reprocess file
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
+          S3_PATH: ${{ inputs.s3Path }}
+          QUEUE_URL: ${{ secrets.QUEUE_URL }}
+        run: |
+          pnpm run main

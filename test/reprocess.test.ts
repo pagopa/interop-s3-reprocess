@@ -39,13 +39,6 @@ describe("reprocessMessage tests", () => {
     config.awsRegion = "test-region";
   });
 
-  it("throws error if s3Path is missing", async () => {
-    config.s3Path = undefined as any;
-    await expect(
-      reprocessMessage(producerService, bucketService),
-    ).rejects.toThrow("Missing required environment variables");
-  });
-
   it("throw errors if object is not found", async () => {
     vi.spyOn(bucketService, "getS3Objects").mockResolvedValue([]);
     await expect(

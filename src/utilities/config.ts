@@ -6,7 +6,7 @@ const s3ReprocessingConfig = z
     BUCKET_NAME: z.string(),
     QUEUE_URL: z.string(),
     APPLICATION_NAME: z.string(),
-    S3_PATH: z.string(),
+    S3_PATH: z.string().optional(),
     S3_SERVER: z.string(),
   })
   .transform((c) => ({

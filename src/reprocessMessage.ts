@@ -13,14 +13,14 @@ export async function reprocessMessage(
   bucketService: BucketService,
 ) {
   const { bucketName, queueUrl, s3Path: s3KeyPath, awsRegion } = config;
-  if (!bucketName || !queueUrl || !s3KeyPath || !awsRegion) {
+  if (!bucketName || !queueUrl || !awsRegion) {
     throw missingRequiredEnvironmentVariablesError(
       "Missing required environment variables",
     );
   }
 
   log.info(`S3 Key Path: ${s3KeyPath}`);
-  const s3Files = await bucketService.getS3Objects(bucketName, s3KeyPath);
+  const s3Files = await bucketService.getS3Objects(bucketName, s3KeyPath || ""); // if s3KeyPath not found, reprocess the entire bucket
   if (!s3Files || s3Files.length === 0) {
     throw s3NoObjectFoundError(`No object found for s3KeyPath ${s3KeyPath}`);
   }

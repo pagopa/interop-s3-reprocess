@@ -5,7 +5,7 @@ on:
     inputs:
       s3Path:
         description: "The s3KeyPath for file you need to retrigger"
-        required: true
+        required: false
       environment:
         description: "Select environment (e.g., production, staging)"
         required: true

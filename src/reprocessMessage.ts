@@ -32,6 +32,7 @@ export async function reprocessMessage(
       const s3Body: S3BodySchema = {
         Records: [
           {
+            eventName: "ObjectCreated:Put",
             s3: { object: { key: s3File } },
           },
         ],

@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 const tracingReprocessingConfig = z
   .object({
     AWS_REGION: z.string(),
@@ -7,6 +6,8 @@ const tracingReprocessingConfig = z
     BUCKET_NAME: z.string(),
     QUEUE_URL: z.string(),
     APPLICATION_NAME: z.string(),
+    S3_PATH: z.string(),
+    S3_SERVER: z.string(),
   })
   .transform((c) => ({
     awsRegion: c.AWS_REGION,
@@ -14,6 +15,8 @@ const tracingReprocessingConfig = z
     bucketName: c.BUCKET_NAME,
     queueUrl: c.QUEUE_URL,
     applicationName: c.APPLICATION_NAME,
+    s3Path: c.S3_PATH,
+    s3Server: c.S3_SERVER,
   }));
 
 export type TracingReprocessingConfig = z.infer<

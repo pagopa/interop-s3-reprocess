@@ -65,6 +65,7 @@ describe("reprocessMessage tests", () => {
     expect(sendSpy).toHaveBeenCalledWith("https://sqs.test-url.com/1234", {
       Records: [
         {
+          eventName: "ObjectCreated:Put",
           s3: { object: { key: "single-file" } },
         },
       ],
@@ -85,13 +86,19 @@ describe("reprocessMessage tests", () => {
 
     expect(sendSpy).toHaveBeenCalledTimes(3);
     expect(sendSpy).toHaveBeenCalledWith("https://sqs.test-url.com/1234", {
-      Records: [{ s3: { object: { key: "fileA" } } }],
+      Records: [
+        { eventName: "ObjectCreated:Put", s3: { object: { key: "fileA" } } },
+      ],
     });
     expect(sendSpy).toHaveBeenCalledWith("https://sqs.test-url.com/1234", {
-      Records: [{ s3: { object: { key: "fileB" } } }],
+      Records: [
+        { eventName: "ObjectCreated:Put", s3: { object: { key: "fileB" } } },
+      ],
     });
     expect(sendSpy).toHaveBeenCalledWith("https://sqs.test-url.com/1234", {
-      Records: [{ s3: { object: { key: "fileC" } } }],
+      Records: [
+        { eventName: "ObjectCreated:Put", s3: { object: { key: "fileC" } } },
+      ],
     });
   });
 });

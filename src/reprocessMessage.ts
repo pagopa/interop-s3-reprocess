@@ -13,7 +13,7 @@ export async function reprocessMessage(
   bucketService: BucketService,
 ) {
   const { bucketName, queueUrl, s3Path: s3KeyPath, awsRegion } = config;
-  if (!bucketName || !queueUrl || s3KeyPath === undefined || !awsRegion) {
+  if (!bucketName || !queueUrl || !s3KeyPath || !awsRegion) {
     throw missingRequiredEnvironmentVariablesError(
       "Missing required environment variables",
     );
@@ -21,7 +21,10 @@ export async function reprocessMessage(
 
   log.info(`S3 Key Path: ${s3KeyPath}`);
 
-  const s3Files = await bucketService.getS3Objects(bucketName, s3KeyPath);
+  const s3Files = await bucketService.getS3Objects(
+    bucketName,
+    determineS3Path(s3KeyPath, bucketName),
+  );
   if (!s3Files || s3Files.length === 0) {
     throw s3NoObjectFoundError(`No object found for s3KeyPath ${s3KeyPath}`);
   }
@@ -40,4 +43,14 @@ export async function reprocessMessage(
       return producerService.sendSqsMessage(queueUrl, s3Body);
     }),
   );
+}
+
+function determineS3Path(s3KeyPath: string, bucketName: string): string {
+  // if user wrote only the bucket name, reprocess the entire bucket
+  if (s3KeyPath === bucketName) {
+    log.info(`Reprocessing entire bucket - ${bucketName}`);
+    return "";
+  } else {
+    return s3KeyPath;
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "tracing-reprocess",
+  "name": "interop-s3-reprocess",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",

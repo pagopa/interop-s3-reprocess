@@ -34,7 +34,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
-          role-session-name: tracing-reprocess-${{ github.run_number }}
+          role-session-name: interop-s3-reprocess-${{ github.run_number }}
 
       - name: Install dependencies using pnpm
         run: |

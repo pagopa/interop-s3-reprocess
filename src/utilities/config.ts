@@ -1,5 +1,5 @@
 import { z } from "zod";
-const tracingReprocessingConfig = z
+const s3ReprocessingConfig = z
   .object({
     AWS_REGION: z.string(),
     AWS_ROLE: z.string(),
@@ -19,10 +19,8 @@ const tracingReprocessingConfig = z
     s3Server: c.S3_SERVER,
   }));
 
-export type TracingReprocessingConfig = z.infer<
-  typeof tracingReprocessingConfig
->;
+export type S3ReprocessingConfig = z.infer<typeof s3ReprocessingConfig>;
 
-export const config: TracingReprocessingConfig = {
-  ...tracingReprocessingConfig.parse(process.env),
+export const config: S3ReprocessingConfig = {
+  ...s3ReprocessingConfig.parse(process.env),
 };

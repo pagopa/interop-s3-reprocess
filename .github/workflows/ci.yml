@@ -46,6 +46,7 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
           S3_PATH: ${{ inputs.s3Path }}
+          S3_SERVER: ${{ secrets.s3Server }}
           QUEUE_URL: ${{ secrets.QUEUE_URL }}
         run: |
           pnpm run main

@@ -20,12 +20,10 @@ vi.mock("@aws-sdk/client-sqs", () => ({
   SendMessageCommand: vi.fn(),
 }));
 
-// 3) Import real code (AFTER mocks):
 import { reprocessMessage } from "../src/reprocessMessage";
 import { bucketServiceBuilder } from "../src/services/bucketService";
 import { producerServiceBuilder } from "../src/services/producerService";
 import { config } from "../src/utilities/config";
-import { any } from "zod";
 
 describe("reprocessMessage tests", () => {
   const s3ClientMock = { send: vi.fn() };

@@ -12,7 +12,9 @@ import { config } from "./utilities/config";
 
 const s3Client = new S3Client({
   region: config.awsRegion,
-  endpoint: config.s3Server,
+  endpoint: config.s3CustomServer
+    ? `${config.s3ServerHost}:${config.s3ServerPort}`
+    : undefined,
   forcePathStyle: true,
 });
 

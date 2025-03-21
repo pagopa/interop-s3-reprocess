@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       s3Path:
-        description: "The s3KeyPath for file you need to retrigger"
-        required: true
+        description: "S3 key prefix, it will be used to search recursively for files. (empty == entire bucket)"
+        required: false
       environment:
         description: "Select environment (e.g., production, staging)"
         required: true
@@ -34,7 +34,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
-          role-session-name: tracing-reprocess-${{ github.run_number }}
+          role-session-name: interop-s3-reprocess-${{ github.run_number }}
 
       - name: Install dependencies using pnpm
         run: |

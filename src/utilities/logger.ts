@@ -2,15 +2,11 @@ import winston from "winston";
 
 const logLevel = process.env.LOG_LEVEL || "info";
 
-const logFormat = winston.format.printf(
-  ({ level, message, timestamp, ...meta }) => {
-    const formattedMessage =
-      typeof message === "object" ? JSON.stringify(message) : message;
-
-    const metadataString = meta ? JSON.stringify(meta) : "";
-    return `${timestamp} [${level.toUpperCase()}] - ${formattedMessage} ${metadataString}`;
-  },
-);
+const logFormat = winston.format.printf(({ level, message, timestamp }) => {
+  const formattedMessage =
+    typeof message === "object" ? JSON.stringify(message) : message;
+  return `${timestamp} [${level.toUpperCase()}] - ${formattedMessage}`;
+});
 
 const logger = winston.createLogger({
   level: logLevel,

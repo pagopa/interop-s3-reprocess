@@ -20,7 +20,9 @@ export const producerServiceBuilder = (sqsClient: SQSClient) => {
         });
         const response: SendMessageCommandOutput =
           await sqsClient.send(command);
-        log.info(`Message sent with ID: ${response.MessageId}`);
+        log.info(
+          `Message sent with ID: ${response.MessageId} - ${JSON.stringify(messageBody)}`,
+        );
         return response;
       } catch (error) {
         log.error(`Error sending message`, error);

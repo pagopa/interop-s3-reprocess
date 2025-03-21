@@ -6,40 +6,37 @@ import {
   missingRequiredEnvironmentVariablesError,
   s3NoObjectFoundError,
 } from "./utilities/errors";
+import { config } from "./utilities/config";
 
 export async function reprocessMessage(
   producerService: ProducerService,
   bucketService: BucketService,
 ) {
-  const bucketName = process.env.BUCKET_NAME;
-  const queueUrl = process.env.QUEUE_URL;
-  const s3KeyPath = process.env.S3_PATH;
-  const awsRegion = process.env.AWS_REGION;
-
-  if (!bucketName || !queueUrl || !s3KeyPath || !awsRegion) {
+  const { bucketName, queueUrl, s3Path: s3KeyPath, awsRegion } = config;
+  if (!bucketName || !queueUrl || !awsRegion) {
     throw missingRequiredEnvironmentVariablesError(
       "Missing required environment variables",
     );
   }
 
-  log.info(`S3 Key Path: ${s3KeyPath} \n`);
-
-  const s3File = await bucketService.getS3Object(bucketName, s3KeyPath);
-
-  if (!s3File) {
+  log.info(`S3 Key Path: ${s3KeyPath}`);
+  const s3Files = await bucketService.getS3Objects(bucketName, s3KeyPath || ""); // if s3KeyPath not found, reprocess the entire bucket
+  if (!s3Files || s3Files.length === 0) {
     throw s3NoObjectFoundError(`No object found for s3KeyPath ${s3KeyPath}`);
   }
 
-  const s3Body: S3BodySchema = {
-    Records: [
-      {
-        s3: {
-          object: {
-            key: s3File,
+  log.info(`Processing ${s3Files.length} items`);
+  await Promise.all(
+    s3Files.map((s3File) => {
+      const s3Body: S3BodySchema = {
+        Records: [
+          {
+            eventName: "ObjectCreated:Put",
+            s3: { object: { key: s3File } },
           },
-        },
-      },
-    ],
-  };
-  await producerService.sendSqsMessage(queueUrl, s3Body);
+        ],
+      };
+      return producerService.sendSqsMessage(queueUrl, s3Body);
+    }),
+  );
 }

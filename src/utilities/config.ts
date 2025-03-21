@@ -1,25 +1,28 @@
 import { z } from "zod";
+import { FileManagerConfig } from "./fileManagerConfig";
 
-const tracingReprocessingConfig = z
-  .object({
-    AWS_REGION: z.string(),
-    AWS_ROLE: z.string(),
-    BUCKET_NAME: z.string(),
-    QUEUE_URL: z.string(),
-    APPLICATION_NAME: z.string(),
-  })
-  .transform((c) => ({
-    awsRegion: c.AWS_REGION,
-    awsRole: c.AWS_ROLE,
-    bucketName: c.BUCKET_NAME,
-    queueUrl: c.QUEUE_URL,
-    applicationName: c.APPLICATION_NAME,
-  }));
+const s3ReprocessingConfig = FileManagerConfig.and(
+  z
+    .object({
+      AWS_REGION: z.string(),
+      AWS_ROLE: z.string(),
+      BUCKET_NAME: z.string(),
+      QUEUE_URL: z.string(),
+      APPLICATION_NAME: z.string(),
+      S3_PATH: z.string().optional(),
+    })
+    .transform((c) => ({
+      awsRegion: c.AWS_REGION,
+      awsRole: c.AWS_ROLE,
+      bucketName: c.BUCKET_NAME,
+      queueUrl: c.QUEUE_URL,
+      applicationName: c.APPLICATION_NAME,
+      s3Path: c.S3_PATH,
+    })),
+);
 
-export type TracingReprocessingConfig = z.infer<
-  typeof tracingReprocessingConfig
->;
+export type S3ReprocessingConfig = z.infer<typeof s3ReprocessingConfig>;
 
-export const config: TracingReprocessingConfig = {
-  ...tracingReprocessingConfig.parse(process.env),
+export const config: S3ReprocessingConfig = {
+  ...s3ReprocessingConfig.parse(process.env),
 };

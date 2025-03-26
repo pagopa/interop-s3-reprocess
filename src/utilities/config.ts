@@ -14,7 +14,6 @@ const s3ReprocessingConfig = FileManagerConfig.and(
       AWS_ROLE: z.string().optional(),
       BUCKET_NAME: z.string(),
       QUEUE_URL: z.string(),
-      APPLICATION_NAME: z.string(),
       S3_PATH: z.string().optional(),
     })
     .transform((c) => ({
@@ -22,7 +21,6 @@ const s3ReprocessingConfig = FileManagerConfig.and(
       awsRole: c.AWS_ROLE,
       bucketName: c.BUCKET_NAME,
       queueUrl: c.QUEUE_URL,
-      applicationName: c.APPLICATION_NAME,
       s3Path: c.S3_PATH,
     })),
 );

@@ -7,7 +7,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "main": "ts-node -r 'dotenv-flow/config' src/index.ts",
+    "main": "ts-node src/index.ts",
+    "start": "NODE_ENV=local ts-node src/index.ts",
     "build": "tsc",
     "lint": "eslint src/",
     "lint:autofix": "eslint src/. --ext .ts,.tsx --fix",

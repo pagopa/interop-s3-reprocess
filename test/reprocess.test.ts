@@ -18,6 +18,7 @@ vi.mock("@aws-sdk/client-s3", () => ({
 vi.mock("@aws-sdk/client-sqs", () => ({
   SQSClient: vi.fn().mockImplementation(() => ({ send: vi.fn() })),
   SendMessageCommand: vi.fn(),
+  SendMessageBatchCommand: vi.fn(),
 }));
 
 import { reprocessMessage } from "../src/reprocessMessage";
@@ -46,52 +47,48 @@ describe("reprocessMessage tests", () => {
     ).rejects.toThrow(`No object found for s3KeyPath test-path`);
   });
 
-  it("calls sendSqsMessage for one file", async () => {
-    const sendSpy = vi
-      .spyOn(producerService, "sendSqsMessage")
+  it("calls sendSqsMessageBatch for one file", async () => {
+    const batchSpy = vi
+      .spyOn(producerService, "sendSqsMessageBatch")
       .mockResolvedValue({} as any);
     vi.spyOn(bucketService, "getS3Objects").mockResolvedValue(["single-file"]);
 
     await reprocessMessage(producerService, bucketService);
 
-    expect(sendSpy).toHaveBeenCalledTimes(1);
-    expect(sendSpy).toHaveBeenCalledWith("https://sqs.test-url.com/1234", {
-      Records: [
-        {
-          eventName: "ObjectCreated:Put",
-          s3: { object: { key: "single-file" } },
+    expect(batchSpy).toHaveBeenCalledTimes(1);
+    expect(batchSpy).toHaveBeenCalledWith("https://sqs.test-url.com/1234", [
+      {
+        id: "msg_0",
+        body: {
+          Records: [
+            {
+              eventName: "ObjectCreated:Put",
+              s3: { object: { key: "single-file" } },
+            },
+          ],
         },
-      ],
-    });
+      },
+    ]);
   });
 
-  it("calls sendSqsMessage n times if multiple files found", async () => {
-    const sendSpy = vi
-      .spyOn(producerService, "sendSqsMessage")
+  it("calls sendSqsMessageBatch with correct chunking", async () => {
+    const batchSpy = vi
+      .spyOn(producerService, "sendSqsMessageBatch")
       .mockResolvedValue({} as any);
-    vi.spyOn(bucketService, "getS3Objects").mockResolvedValue([
-      "fileA",
-      "fileB",
-      "fileC",
-    ]);
+
+    const files = Array.from({ length: 15 }, (_, i) => `file-${i}`);
+    vi.spyOn(bucketService, "getS3Objects").mockResolvedValue(files);
 
     await reprocessMessage(producerService, bucketService);
 
-    expect(sendSpy).toHaveBeenCalledTimes(3);
-    expect(sendSpy).toHaveBeenCalledWith("https://sqs.test-url.com/1234", {
-      Records: [
-        { eventName: "ObjectCreated:Put", s3: { object: { key: "fileA" } } },
-      ],
-    });
-    expect(sendSpy).toHaveBeenCalledWith("https://sqs.test-url.com/1234", {
-      Records: [
-        { eventName: "ObjectCreated:Put", s3: { object: { key: "fileB" } } },
-      ],
-    });
-    expect(sendSpy).toHaveBeenCalledWith("https://sqs.test-url.com/1234", {
-      Records: [
-        { eventName: "ObjectCreated:Put", s3: { object: { key: "fileC" } } },
-      ],
-    });
+    expect(batchSpy).toHaveBeenCalledTimes(2);
+
+    const firstCallArgs = batchSpy.mock.calls[0][1];
+    expect(firstCallArgs).toHaveLength(10);
+    expect(firstCallArgs[0].body.Records[0].s3.object.key).toBe("file-0");
+
+    const secondCallArgs = batchSpy.mock.calls[1][1];
+    expect(secondCallArgs).toHaveLength(5);
+    expect(secondCallArgs[0].body.Records[0].s3.object.key).toBe("file-10");
   });
 });

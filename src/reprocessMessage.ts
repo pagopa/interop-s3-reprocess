@@ -1,4 +1,4 @@
-import { S3BodySchema } from "./models/models";
+import { SendMessageBatchCommandOutput } from "@aws-sdk/client-sqs";
 import { log } from "./utilities/logger";
 import { ProducerService } from "./services/producerService";
 import { BucketService } from "./services/bucketService";
@@ -20,23 +20,42 @@ export async function reprocessMessage(
   }
 
   log.info(`S3 Key Path: ${s3KeyPath}`);
-  const s3Files = await bucketService.getS3Objects(bucketName, s3KeyPath || ""); // if s3KeyPath not found, reprocess the entire bucket
+  const s3Files = await bucketService.getS3Objects(bucketName, s3KeyPath || "");
   if (!s3Files || s3Files.length === 0) {
     throw s3NoObjectFoundError(`No object found for s3KeyPath ${s3KeyPath}`);
   }
 
   log.info(`Processing ${s3Files.length} items`);
-  await Promise.all(
-    s3Files.map((s3File) => {
-      const s3Body: S3BodySchema = {
-        Records: [
-          {
-            eventName: "ObjectCreated:Put",
-            s3: { object: { key: s3File } },
-          },
-        ],
-      };
-      return producerService.sendSqsMessage(queueUrl, s3Body);
-    }),
-  );
+
+  const BATCH_SIZE = 10;
+  const CONCURRENT_BATCHES = 30;
+
+  for (let i = 0; i < s3Files.length; i += BATCH_SIZE * CONCURRENT_BATCHES) {
+    const currentChunk = s3Files.slice(i, i + BATCH_SIZE * CONCURRENT_BATCHES);
+    const batchPromises: Array<Promise<SendMessageBatchCommandOutput>> = [];
+
+    for (let j = 0; j < currentChunk.length; j += BATCH_SIZE) {
+      const batch = currentChunk.slice(j, j + BATCH_SIZE);
+      const entries = batch.map((s3File, index) => ({
+        id: `msg_${i + j + index}`,
+        body: {
+          Records: [
+            {
+              eventName: "ObjectCreated:Put",
+              s3: { object: { key: s3File } },
+            },
+          ],
+        },
+      }));
+
+      batchPromises.push(
+        producerService.sendSqsMessageBatch(queueUrl, entries),
+      );
+    }
+
+    await Promise.all(batchPromises);
+    log.info(
+      `Progress: ${Math.min(i + currentChunk.length, s3Files.length)}/${s3Files.length}`,
+    );
+  }
 }

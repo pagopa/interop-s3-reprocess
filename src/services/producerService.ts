@@ -1,6 +1,6 @@
 import {
-  SendMessageCommandOutput,
-  SendMessageCommand,
+  SendMessageBatchCommand,
+  SendMessageBatchCommandOutput,
   SQSClient,
 } from "@aws-sdk/client-sqs";
 import { log } from "../utilities/logger";
@@ -9,23 +9,25 @@ import { sqsSendMessageError } from "../utilities/errors";
 
 export const producerServiceBuilder = (sqsClient: SQSClient) => {
   return {
-    async sendSqsMessage(
+    async sendSqsMessageBatch(
       queueUrl: string,
-      messageBody: S3BodySchema,
-    ): Promise<SendMessageCommandOutput> {
+      entries: Array<{ id: string; body: S3BodySchema }>,
+    ): Promise<SendMessageBatchCommandOutput> {
       try {
-        const command: SendMessageCommand = new SendMessageCommand({
+        const command = new SendMessageBatchCommand({
           QueueUrl: queueUrl,
-          MessageBody: JSON.stringify(messageBody),
+          Entries: entries.map((entry) => ({
+            Id: entry.id,
+            MessageBody: JSON.stringify(entry.body),
+          })),
         });
-        const response: SendMessageCommandOutput =
-          await sqsClient.send(command);
-        return response;
+        return await sqsClient.send(command);
       } catch (error) {
-        log.error(`Error sending message`, error);
+        log.error(`Error sending message batch`, error);
         throw sqsSendMessageError(error);
       }
     },
   };
 };
+
 export type ProducerService = ReturnType<typeof producerServiceBuilder>;

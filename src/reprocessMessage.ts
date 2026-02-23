@@ -29,8 +29,12 @@ export async function reprocessMessage(
 
   const BATCH_SIZE = 10;
   const CONCURRENT_BATCHES = 30;
-
-  for (let i = 0; i < s3Files.length; i += BATCH_SIZE * CONCURRENT_BATCHES) {
+  const START_FROM = 4531500; // temporary workaround to process jwt files
+  for (
+    let i = START_FROM;
+    i < s3Files.length;
+    i += BATCH_SIZE * CONCURRENT_BATCHES
+  ) {
     const currentChunk = s3Files.slice(i, i + BATCH_SIZE * CONCURRENT_BATCHES);
     const batchPromises: Array<Promise<SendMessageBatchCommandOutput>> = [];
 

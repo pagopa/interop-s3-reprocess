@@ -6,6 +6,10 @@ on:
       s3Path:
         description: "S3 key prefix, it will be used to search recursively for files. (empty == entire bucket)"
         required: false
+      startFrom:
+        description: "Index to start processing from (default: 0)"
+        required: false
+        default: "0"
       environment:
         description: "Select environment (e.g., production, staging)"
         required: true

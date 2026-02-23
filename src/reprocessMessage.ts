@@ -12,7 +12,13 @@ export async function reprocessMessage(
   producerService: ProducerService,
   bucketService: BucketService,
 ) {
-  const { bucketName, queueUrl, s3Path: s3KeyPath, awsRegion } = config;
+  const {
+    bucketName,
+    queueUrl,
+    s3Path: s3KeyPath,
+    awsRegion,
+    startFrom,
+  } = config;
   if (!bucketName || !queueUrl || !awsRegion) {
     throw missingRequiredEnvironmentVariablesError(
       "Missing required environment variables",
@@ -29,9 +35,8 @@ export async function reprocessMessage(
 
   const BATCH_SIZE = 10;
   const CONCURRENT_BATCHES = 30;
-  const START_FROM = 4531500; // temporary workaround to process jwt files
   for (
-    let i = START_FROM;
+    let i = startFrom;
     i < s3Files.length;
     i += BATCH_SIZE * CONCURRENT_BATCHES
   ) {

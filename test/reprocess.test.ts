@@ -38,6 +38,7 @@ describe("reprocessMessage tests", () => {
     config.queueUrl = "https://sqs.test-url.com/1234";
     config.s3Path = "test-path";
     config.awsRegion = "test-region";
+    config.startFrom = 0;
   });
 
   it("throw errors if object is not found", async () => {
@@ -52,9 +53,7 @@ describe("reprocessMessage tests", () => {
       .spyOn(producerService, "sendSqsMessageBatch")
       .mockResolvedValue({} as any);
     vi.spyOn(bucketService, "getS3Objects").mockResolvedValue(["single-file"]);
-
     await reprocessMessage(producerService, bucketService);
-
     expect(batchSpy).toHaveBeenCalledTimes(1);
     expect(batchSpy).toHaveBeenCalledWith("https://sqs.test-url.com/1234", [
       {
@@ -75,18 +74,13 @@ describe("reprocessMessage tests", () => {
     const batchSpy = vi
       .spyOn(producerService, "sendSqsMessageBatch")
       .mockResolvedValue({} as any);
-
     const files = Array.from({ length: 15 }, (_, i) => `file-${i}`);
     vi.spyOn(bucketService, "getS3Objects").mockResolvedValue(files);
-
     await reprocessMessage(producerService, bucketService);
-
     expect(batchSpy).toHaveBeenCalledTimes(2);
-
     const firstCallArgs = batchSpy.mock.calls[0][1];
     expect(firstCallArgs).toHaveLength(10);
     expect(firstCallArgs[0].body.Records[0].s3.object.key).toBe("file-0");
-
     const secondCallArgs = batchSpy.mock.calls[1][1];
     expect(secondCallArgs).toHaveLength(5);
     expect(secondCallArgs[0].body.Records[0].s3.object.key).toBe("file-10");

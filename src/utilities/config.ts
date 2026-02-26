@@ -15,6 +15,7 @@ const s3ReprocessingConfig = FileManagerConfig.and(
       BUCKET_NAME: z.string(),
       QUEUE_URL: z.string(),
       S3_PATH: z.string().optional(),
+      START_FROM: z.coerce.number().default(0),
     })
     .transform((c) => ({
       awsRegion: c.AWS_REGION,
@@ -22,6 +23,7 @@ const s3ReprocessingConfig = FileManagerConfig.and(
       bucketName: c.BUCKET_NAME,
       queueUrl: c.QUEUE_URL,
       s3Path: c.S3_PATH,
+      startFrom: c.START_FROM,
     })),
 );
 

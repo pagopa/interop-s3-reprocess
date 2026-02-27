@@ -32,6 +32,7 @@ export async function reprocessMessage(
   }
 
   log.info(`Processing ${s3Files.length} items`);
+  log.info(`Starting from offset ${startFrom}`);
 
   const BATCH_SIZE = 10;
   const CONCURRENT_BATCHES = 30;

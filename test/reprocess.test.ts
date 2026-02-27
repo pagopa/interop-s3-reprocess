@@ -85,4 +85,24 @@ describe("reprocessMessage tests", () => {
     expect(secondCallArgs).toHaveLength(5);
     expect(secondCallArgs[0].body.Records[0].s3.object.key).toBe("file-10");
   });
+  it("should start processing from the index specified in startFrom", async () => {
+    const files = Array.from({ length: 25 }, (_, i) => `file-${i}`);
+    vi.spyOn(bucketService, "getS3Objects").mockResolvedValue(files);
+
+    const batchSpy = vi
+      .spyOn(producerService, "sendSqsMessageBatch")
+      .mockResolvedValue({} as any);
+
+    config.startFrom = 20;
+
+    await reprocessMessage(producerService, bucketService);
+    expect(batchSpy).toHaveBeenCalledTimes(1);
+
+    const callArgs = batchSpy.mock.calls[0][1];
+    expect(callArgs).toHaveLength(5);
+    expect(callArgs[0].body.Records[0].s3.object.key).toBe("file-20");
+    expect(callArgs[0].id).toBe("msg_20");
+    expect(callArgs[4].body.Records[0].s3.object.key).toBe("file-24");
+    expect(callArgs[4].id).toBe("msg_24");
+  });
 });

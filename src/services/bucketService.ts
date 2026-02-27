@@ -32,13 +32,13 @@ export const bucketServiceBuilder = (s3Client: S3Client) => {
 
         const response: ListObjectsV2CommandOutput =
           await s3Client.send(command);
-        log.info(
-          `ListObjectResponse for s3KeyPath ${s3KeyPath}: \n Found ${JSON.stringify(response.KeyCount)} keys on path ${s3KeyPath}`,
-        );
 
         if (response.Contents && response.Contents.length > 0) {
           const keys = response.Contents.map(({ Key }) => Key as string);
           allKeys = [...allKeys, ...keys];
+          log.info(
+            `${s3KeyPath}: Fetching S3 keys... Accumulated: ${allKeys.length}`,
+          );
         }
 
         continuationToken = response.NextContinuationToken;

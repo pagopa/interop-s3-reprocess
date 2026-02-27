@@ -12,7 +12,13 @@ export async function reprocessMessage(
   producerService: ProducerService,
   bucketService: BucketService,
 ) {
-  const { bucketName, queueUrl, s3Path: s3KeyPath, awsRegion } = config;
+  const {
+    bucketName,
+    queueUrl,
+    s3Path: s3KeyPath,
+    awsRegion,
+    startFrom,
+  } = config;
   if (!bucketName || !queueUrl || !awsRegion) {
     throw missingRequiredEnvironmentVariablesError(
       "Missing required environment variables",
@@ -29,8 +35,11 @@ export async function reprocessMessage(
 
   const BATCH_SIZE = 10;
   const CONCURRENT_BATCHES = 30;
-
-  for (let i = 0; i < s3Files.length; i += BATCH_SIZE * CONCURRENT_BATCHES) {
+  for (
+    let i = startFrom;
+    i < s3Files.length;
+    i += BATCH_SIZE * CONCURRENT_BATCHES
+  ) {
     const currentChunk = s3Files.slice(i, i + BATCH_SIZE * CONCURRENT_BATCHES);
     const batchPromises: Array<Promise<SendMessageBatchCommandOutput>> = [];
 
